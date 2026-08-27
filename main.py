@@ -1,5 +1,6 @@
 import os
 import discord
+from discord import app_commands
 from discord.ext import commands
 from flask import Flask
 from threading import Thread
@@ -23,20 +24,42 @@ def keep_alive():
     t.start()
 
 intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents, activity=discord.Game(name="Cisco NetConnect PUP - Manila"))
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+class AnnounceModal(discord.ui.Modal, title="New Announcement"):
+    title_input = discord.ui.TextInput(
+        label="Title",
+        placeholder="Announcement title...",
+        style=discord.TextStyle.short,
+        required=True,
+        max_length=256
+    )
+    body = discord.ui.TextInput(
+        label="Body",
+        placeholder="Write your announcement here...",
+        style=discord.TextStyle.paragraph,
+        required=True,
+        max_length=4000
+    )
+
+    async def on_submit(self, interaction: discord.Interaction):
+        embed = discord.Embed(
+            title=self.title_input.value,
+            description=self.body.value,
+            color=0x045DA0
+        )
+        embed.set_footer(text="Axie | Cisco NetConnect PUP - Manila")
+        await interaction.response.send_message(embed=embed)
 
 @bot.event
 async def on_ready():
+    await bot.tree.sync()
     print(f"Logged in as {bot.user}")
 
-@bot.command(name="announce")
-@commands.has_permissions(administrator=True)
-async def announce(ctx, channel: discord.TextChannel, *, message):
-    embed = discord.Embed(description=message, color=0x045DA0)
-    embed.set_footer(text="Axie | Cisco NetConnect PUP - Manila")
-    await channel.send(embed=embed)
-    await ctx.send(f"Announcement sent to {channel.mention}")
+@bot.tree.command(name="announce", description="Send an announcement via modal")
+@app_commands.checks.has_permissions(administrator=True)
+async def announce(interaction: discord.Interaction):
+    await interaction.response.send_modal(AnnounceModal())
 
 if __name__ == "__main__":
     keep_alive()
