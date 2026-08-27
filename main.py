@@ -26,6 +26,23 @@ def keep_alive():
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
+class ChannelSelect(discord.ui.Select):
+    def __init__(self, channels):
+        options = [
+            discord.SelectOption(label=ch.name, value=str(ch.id))
+            for ch in channels
+        ]
+        super().__init__(placeholder="Select a channel...", options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        channel = interaction.guild.get_channel(int(self.values[0]))
+        await interaction.response.send_modal(AnnounceModal(channel))
+
+class ChannelView(discord.ui.View):
+    def __init__(self, channels):
+        super().__init__(timeout=60)
+        self.add_item(ChannelSelect(channels))
+
 class AnnounceModal(discord.ui.Modal, title="New Announcement"):
     title_input = discord.ui.TextInput(
         label="Title",
@@ -63,8 +80,9 @@ async def on_ready():
 
 @bot.tree.command(name="announce-axie", description="Send an announcement via modal")
 @app_commands.checks.has_permissions(administrator=True)
-async def announce(interaction: discord.Interaction, channel: discord.TextChannel):
-    await interaction.response.send_modal(AnnounceModal(channel))
+async def announce(interaction: discord.Interaction):
+    channels = [ch for ch in interaction.guild.text_channels if ch.permissions_for(interaction.guild.me).send_messages]
+    await interaction.response.send_message("Where should I send the announcement?", view=ChannelView(channels), ephemeral=True)
 
 if __name__ == "__main__":
     keep_alive()
