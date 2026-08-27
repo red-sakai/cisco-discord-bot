@@ -42,6 +42,10 @@ class AnnounceModal(discord.ui.Modal, title="New Announcement"):
         max_length=4000
     )
 
+    def __init__(self, channel: discord.TextChannel):
+        super().__init__()
+        self.channel = channel
+
     async def on_submit(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title=self.title_input.value,
@@ -49,7 +53,8 @@ class AnnounceModal(discord.ui.Modal, title="New Announcement"):
             color=0x045DA0
         )
         embed.set_footer(text="Axie | Cisco NetConnect PUP - Manila")
-        await interaction.response.send_message(embed=embed)
+        await self.channel.send(embed=embed)
+        await interaction.response.send_message(f"Announcement sent to {self.channel.mention}", ephemeral=True)
 
 @bot.event
 async def on_ready():
@@ -58,8 +63,8 @@ async def on_ready():
 
 @bot.tree.command(name="announce-axie", description="Send an announcement via modal")
 @app_commands.checks.has_permissions(administrator=True)
-async def announce(interaction: discord.Interaction):
-    await interaction.response.send_modal(AnnounceModal())
+async def announce(interaction: discord.Interaction, channel: discord.TextChannel):
+    await interaction.response.send_modal(AnnounceModal(channel))
 
 if __name__ == "__main__":
     keep_alive()
