@@ -81,7 +81,7 @@ async def on_ready():
 @bot.tree.command(name="announce-axie", description="Send an announcement via modal")
 @app_commands.checks.has_permissions(administrator=True)
 async def announce(interaction: discord.Interaction):
-    channels = [ch for ch in interaction.guild.text_channels if ch.permissions_for(interaction.guild.me).send_messages]
+    channels = [ch for ch in interaction.guild.text_channels if ch.permissions_for(interaction.guild.me).send_messages][:25]
     await interaction.response.send_message("Where should I send the announcement?", view=ChannelView(channels), ephemeral=True)
 
 if __name__ == "__main__":
