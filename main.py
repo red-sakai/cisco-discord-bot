@@ -56,7 +56,7 @@ async def on_ready():
     await bot.tree.sync()
     print(f"Logged in as {bot.user}")
 
-@bot.tree.command(name="announce", description="Send an announcement via modal")
+@bot.tree.command(name="announce-axie", description="Send an announcement via modal")
 @app_commands.checks.has_permissions(administrator=True)
 async def announce(interaction: discord.Interaction):
     await interaction.response.send_modal(AnnounceModal())
